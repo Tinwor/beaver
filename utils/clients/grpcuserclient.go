@@ -24,10 +24,9 @@ func NewGrpcUserClient(uri string) *GrpcUserClient {
 	}
 	return &ret
 }
-
-func (g *GrpcUserClient) UserLogin(ctx context.Context, in *client.UserRequest, opts ...grpc.CallOption) (*client.LoginResponse, error) {
+func (g *GrpcUserClient) UserLogin(ctx context.Context, in *client.LoginRequest, opts ...grpc.CallOption) (*client.Response, error) {
 	return nil, nil
 }
-func (g *GrpcUserClient) UserNewRegister(ctx context.Context, in *client.UserRegister, opts ...grpc.CallOption) (*client.RegisterResponse, error) {
+func (g *GrpcUserClient) NewUser(ctx context.Context, in *client.RegisterUser, opts ...grpc.CallOption) (*client.Response, error) {
 	return nil, nil
 }
