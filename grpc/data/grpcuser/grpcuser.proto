@@ -1,28 +1,26 @@
 syntax = "proto3";
 
 service User {
-    rpc UserLogin(UserRequest) returns (LoginResponse) {}
-    rpc UserNewRegister(UserRegister) returns (RegisterResponse) {}
+    rpc UserLogin(LoginRequest) returns (Response) {}
+    rpc NewUser(User) returns (Response) {}
 }
-message UserRequest {
+message LoginRequest {
     string username = 1;
     string password = 2;
 }
-message UserRegister { 
+message User { 
     string username = 1;
     string password = 2;
-    string salt = 3;
     string email = 4;
-    string guid = 5;
 }
-message RegisterResponse {
+message Response {
     string token = 1;
     StatusResponse status = 2;
 }
-message LoginResponse {
+message UserByGuid {
     string token = 1;
-    StatusResponse status = 2;
 }
+
 enum StatusResponse {
     OK = 0;
     USERNAME_EXIST = 1;
