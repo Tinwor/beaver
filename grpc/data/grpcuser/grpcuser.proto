@@ -23,8 +23,7 @@ message UserByGuid {
 
 enum StatusResponse {
     OK = 0;
-    USERNAME_EXIST = 1;
-    EMAIL_EXIST = 2;
+    CREDENTIAL_EXIST = 2;
     FAILED = 3;
     SERVER_ERROR = 4;
 }

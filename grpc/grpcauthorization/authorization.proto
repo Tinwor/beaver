@@ -1,7 +1,19 @@
 syntax = "proto3";
 
 service Authroization {
+    rpc NewToken(TokenRequest) returns (TokenResponse) {}
+    rpc RefreshToken(TokenRefreshRequest) returns (TokenResponse) {}
     rpc AuthorizeUser(AuthorizationRequest) returns (AuthorizationResponse) {}
+}
+message TokenRefreshRequest {
+    string token = 1;
+}
+message TokenRequest {
+    string guid = 1; 
+}
+message TokenResponse {
+    string token = 1;
+    StatusResponse response = 2;
 }
 message AuthorizationRequest {
     string token = 1;
