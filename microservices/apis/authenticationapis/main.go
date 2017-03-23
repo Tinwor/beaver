@@ -10,22 +10,30 @@ import (
 	"fmt"
 
 	"github.com/Tinwor/beaver/grpc/grpcauth"
+	authorization "github.com/Tinwor/beaver/grpc/grpcauthorization"
+	"github.com/Tinwor/beaver/utils"
 	"github.com/Tinwor/beaver/utils/clients"
+	"github.com/Tinwor/beaver/utils/middlewares"
 	"github.com/julienschmidt/httprouter"
 )
 
 const (
-	port       = ":4001"
-	authClient = ":51001"
+	port                 = ":4001"
+	authClient           = ":51001"
+	authorizationAddress = "localhost:50001"
 )
 
 var clientAuth grpcauth.AuthenticationClient
+var authorizationClient authorization.AuthorizationClient
 
 func main() {
+	mw := middlewares.NewAuthorizationUserMiddleware()
+	authorizationClient = clients.NewGrpcAuthorizationClient(authorizationAddress)
 	clientAuth = clients.NewGrpcAuthenticationClient(authClient)
 	router := httprouter.New()
 	router.POST("/user/login", login)
 	router.POST("/user/register", register)
+	router.GET("/user/refresh/token", mw.AuthorizeUser(refreshToken))
 	log.Fatal(http.ListenAndServe(port, router))
 }
 
@@ -68,5 +76,22 @@ func register(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	case grpcauth.AuthenticationStatusResponse_OK:
 		w.WriteHeader(200)
 		fmt.Fprintf(w, "Registration completed")
+	}
+}
+func refreshToken(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	guid, ok := r.Context().Value(utils.GuidKey).(string)
+	if !ok {
+		w.WriteHeader(500)
+		fmt.Fprintf(w, "Impossible refresh token")
+	}
+	response, err := authorizationClient.RefreshToken(context.Background(), &authorization.TokenRefreshRequest{
+		Token: guid,
+	})
+	if response.Response == authorization.AuthorizationStatusResponse_OK {
+		w.WriteHeader(200)
+		fmt.Fprintf(w, response.Token)
+	} else {
+		log.Println("Error refreshing token: " + err.Error())
+		w.WriteHeader(500)
 	}
 }
