@@ -11,8 +11,6 @@ import (
 
 	client "github.com/Tinwor/beaver/grpc/data/grpcuser"
 	_ "github.com/lib/pq"
-	"github.com/twinj/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -86,7 +84,6 @@ func (u *UserServer) UserLogin(context context.Context, in *client.LoginRequest)
 	}, nil
 }
 func (u *UserServer) NewUser(context context.Context, in *client.RegisterUser) (*client.Response, error) {
-	guid := uuid.NewV4().String()
 	rows, err := u.checkRegistration.Query(in.Username, in.Email)
 	if err != nil {
 		log.Println("Error executing query: ", err.Error())
@@ -95,16 +92,7 @@ func (u *UserServer) NewUser(context context.Context, in *client.RegisterUser) (
 		}, err
 	}
 	if rows == nil {
-
-		salt := randStringRunes(6)
-		password, err := bcrypt.GenerateFromPassword([]byte(salt+in.Password), bcrypt.DefaultCost)
-		if err != nil {
-			log.Println("Error hashing password: ", err.Error())
-			return &client.Response{
-				Status: client.StatusResponse_SERVER_ERROR,
-			}, err
-		}
-		_, err = u.newUserQuery.Exec(guid, in.Username, in.Email, password, salt, time.Now())
+		_, err = u.newUserQuery.Exec(in.Guid, in.Username, in.Email, in.Password, in.Salt, time.Now())
 		if err != nil {
 			log.Println("Error inserting new user: " + err.Error())
 			return &client.Response{
@@ -119,17 +107,7 @@ func (u *UserServer) NewUser(context context.Context, in *client.RegisterUser) (
 	}
 	return &client.Response{
 		Status: client.StatusResponse_OK,
-		Token:  guid,
+		Token:  in.Guid,
 	}, nil
 
-}
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randStringRunes(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
 }
