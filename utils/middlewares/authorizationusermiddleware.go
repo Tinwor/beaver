@@ -7,6 +7,8 @@ import (
 
 	"log"
 
+	"strings"
+
 	client "github.com/Tinwor/beaver/grpc/grpcauthorization"
 	"github.com/Tinwor/beaver/utils"
 	"github.com/Tinwor/beaver/utils/clients"
@@ -28,14 +30,19 @@ func NewAuthorizationUserMiddleware() *AuthorizationUserMiddleware {
 }
 func (a *AuthorizationUserMiddleware) AuthorizeUser(page httprouter.Handle) httprouter.Handle {
 	return httprouter.Handle(func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		header := w.Header().Get(header)
+		log.Println("Entering middleware authorization")
+		header := r.Header.Get(header)
+		log.Println(len(strings.Split(header, ".")))
 		if header == "" {
+			log.Println("Request is null!")
 			http.NotFound(w, r)
 			return
 		}
+
 		response, err := a.authClient.AuthorizeUser(context.Background(), &client.AuthorizationRequest{
 			Token: header,
 		})
+
 		switch response.Response {
 		case client.AuthorizationStatusResponse_ERROR:
 			w.WriteHeader(400)
@@ -45,7 +52,9 @@ func (a *AuthorizationUserMiddleware) AuthorizeUser(page httprouter.Handle) http
 			w.WriteHeader(500)
 			return
 		case client.AuthorizationStatusResponse_OK:
+
 			context := context.WithValue(r.Context(), utils.GuidKey, response.Guid)
+
 			page(w, r.WithContext(context), ps)
 		}
 	})

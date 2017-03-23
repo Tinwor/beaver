@@ -32,7 +32,6 @@ func (a *AuthorizationServer) NewToken(context context.Context, in *auth.TokenRe
 		in.Guid,
 		jwt.StandardClaims{
 			ExpiresAt: expireToken,
-			IssuedAt:  time.Now().Unix(),
 			Issuer:    a.address,
 		},
 	}

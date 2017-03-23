@@ -11,7 +11,6 @@ import (
 
 	"github.com/Tinwor/beaver/grpc/grpcauth"
 	authorization "github.com/Tinwor/beaver/grpc/grpcauthorization"
-	"github.com/Tinwor/beaver/utils"
 	"github.com/Tinwor/beaver/utils/clients"
 	"github.com/Tinwor/beaver/utils/middlewares"
 	"github.com/julienschmidt/httprouter"
@@ -79,18 +78,16 @@ func register(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	}
 }
 func refreshToken(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	guid, ok := r.Context().Value(utils.GuidKey).(string)
-	if !ok {
-		w.WriteHeader(500)
-		fmt.Fprintf(w, "Impossible refresh token")
-	}
+
 	response, err := authorizationClient.RefreshToken(context.Background(), &authorization.TokenRefreshRequest{
-		Token: guid,
+		Token: r.Header.Get("Authorization"),
 	})
+
 	if response.Response == authorization.AuthorizationStatusResponse_OK {
 		w.WriteHeader(200)
 		fmt.Fprintf(w, response.Token)
 	} else {
+		log.Println("Authorization client")
 		log.Println("Error refreshing token: " + err.Error())
 		w.WriteHeader(500)
 	}
