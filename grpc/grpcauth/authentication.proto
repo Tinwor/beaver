@@ -2,10 +2,10 @@ syntax = "proto3";
 
 service Authentication {
     rpc RegisterNewUser(RegisterRequest) returns (AuthenticationResponse) {}
-    rpc Login(LoginRequest) returns (AuthenticationResponse) {}
+    rpc Login(AuthenticationRequest) returns (AuthenticationResponse) {}
 }
 
-message LoginRequest {
+message AuthenticationRequest {
     string username = 1;
     string password = 2;
 }
@@ -16,10 +16,10 @@ message RegisterRequest {
     string email = 3;
 }
 message AuthenticationResponse {
-    StatusResponse status = 1;
+    AuthenticationStatusResponse status = 1;
     string token = 2;
 }
-enum StatusResponse {
+enum AuthenticationStatusResponse {
     OK = 0;
     SERVER_ERROR = 1;
     FAILURE = 2;

@@ -43,7 +43,7 @@ func NewUserServer() *UserServer {
 		log.Fatal("Error preparing query " + err.Error())
 	}
 	user.newUserQuery = stmt
-	stmt, err = user.db.Prepare("SELECT * FROM users WHERE username = $1 OR email = $2")
+	stmt, err = user.db.Prepare("SELECT guid FROM users WHERE username = $1 OR email = $2")
 	if err != nil {
 		defer user.db.Close()
 		log.Fatal("Error preparing query: " + err.Error())
@@ -62,16 +62,16 @@ func newDBConnection() *sql.DB {
 	return db
 }
 func (u *UserServer) UserLogin(context context.Context, in *client.LoginRequest) (*client.Response, error) {
-	rows, err := u.loginQuery.Query(in.Username, in.Password)
+	rows, err := u.loginQuery.Query(in.Username)
 	if err != nil {
 		log.Println("Error executing query: ", err.Error())
 		return &client.Response{
-			Status: client.StatusResponse_SERVER_ERROR,
+			Status: client.UserStatusResponse_SERVER_ERROR,
 		}, err
 	}
 	if rows == nil {
 		return &client.Response{
-			Status: client.StatusResponse_FAILED,
+			Status: client.UserStatusResponse_FAILED,
 		}, nil
 	}
 	var guid string
@@ -79,7 +79,7 @@ func (u *UserServer) UserLogin(context context.Context, in *client.LoginRequest)
 		rows.Scan(&guid)
 	}
 	return &client.Response{
-		Status: client.StatusResponse_OK,
+		Status: client.UserStatusResponse_OK,
 		Token:  guid,
 	}, nil
 }
@@ -88,25 +88,32 @@ func (u *UserServer) NewUser(context context.Context, in *client.RegisterUser) (
 	if err != nil {
 		log.Println("Error executing query: ", err.Error())
 		return &client.Response{
-			Status: client.StatusResponse_SERVER_ERROR,
+			Status: client.UserStatusResponse_SERVER_ERROR,
 		}, err
 	}
-	if rows == nil {
+	log.Println("Checking if user already exist")
+	guid := ""
+	for rows.Next() {
+		rows.Scan(&guid)
+	}
+	if guid == "" {
+		log.Println("User not exist")
 		_, err = u.newUserQuery.Exec(in.Guid, in.Username, in.Email, in.Password, in.Salt, time.Now())
 		if err != nil {
 			log.Println("Error inserting new user: " + err.Error())
 			return &client.Response{
-				Status: client.StatusResponse_SERVER_ERROR,
+				Status: client.UserStatusResponse_SERVER_ERROR,
 			}, err
 		}
 
 	} else {
+		log.Println("User already exist")
 		return &client.Response{
-			Status: client.StatusResponse_CREDENTIAL_EXIST,
+			Status: client.UserStatusResponse_CREDENTIAL_EXIST,
 		}, nil
 	}
 	return &client.Response{
-		Status: client.StatusResponse_OK,
+		Status: client.UserStatusResponse_OK,
 		Token:  in.Guid,
 	}, nil
 

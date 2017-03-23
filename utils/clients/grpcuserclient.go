@@ -8,7 +8,6 @@ import (
 )
 
 type GrpcUserClient struct {
-	grpcClient client.UserClient
 }
 
 func NewGrpcDataUserClient(address string) client.UserClient {

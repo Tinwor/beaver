@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-service Authroization {
+service Authorization {
     rpc NewToken(TokenRequest) returns (TokenResponse) {}
     rpc RefreshToken(TokenRefreshRequest) returns (TokenResponse) {}
     rpc AuthorizeUser(AuthorizationRequest) returns (AuthorizationResponse) {}
@@ -13,17 +13,17 @@ message TokenRequest {
 }
 message TokenResponse {
     string token = 1;
-    StatusResponse response = 2;
+    AuthorizationStatusResponse response = 2;
 }
 message AuthorizationRequest {
     string token = 1;
 }
 
 message AuthorizationResponse {
-    StatusResponse response = 1;
+    AuthorizationStatusResponse response = 1;
     string guid = 2;
 }
-enum StatusResponse {
+enum AuthorizationStatusResponse {
     OK = 0;
     RENEW = 1;
     TIMEOUT = 2;

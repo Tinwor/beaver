@@ -17,14 +17,14 @@ message RegisterUser {
 }
 message Response {
     string token = 1;
-    StatusResponse status = 2;
+    UserStatusResponse status = 2;
 }
 message UserByGuid {
     string token = 1;
-    StatusResponse status = 2;
+    UserStatusResponse status = 2;
 }
 
-enum StatusResponse {
+enum UserStatusResponse {
     OK = 0;
     CREDENTIAL_EXIST = 2;
     FAILED = 3;
